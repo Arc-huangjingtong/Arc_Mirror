@@ -1,11 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using UnityEngine;
-
 namespace Mirror
 {
+
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Runtime.CompilerServices;
+    using UnityEngine;
+
     // SyncMode decides if a component is synced to all observers, or only owner
     public enum SyncMode { Observers, Owner }
 
@@ -44,6 +45,7 @@ namespace Mirror
         [Tooltip("Time in seconds until next change is synchronized to the client. '0' means send immediately if changed. '0.5' means only send changes every 500ms.\n(This is for state synchronization like SyncVars, SyncLists, OnSerialize. Not for Cmds, Rpcs, etc.)")]
         [Range(0, 2)]
         [HideInInspector] public float syncInterval = 0;
+
         internal double lastSyncTime;
 
         /// <summary>True if this object is on the server and has been spawned.</summary>
@@ -137,6 +139,7 @@ namespace Mirror
         // 64 bit mask, tracking up to 64 SyncVars.
         // protected since NB child classes read this field in the weaver generated SerializeSyncVars method
         protected ulong syncVarDirtyBits;
+
         // 64 bit mask, tracking up to 64 sync collections.
         // internal for tests, field for faster access (instead of property)
         // TODO 64 SyncLists are too much. consider smaller mask later.
@@ -163,7 +166,7 @@ namespace Mirror
             // GetComponentInParent(includeInactive) is needed because Prefabs are not
             // considered active, so this check requires to scan inactive.
 #if UNITY_2021_3_OR_NEWER // 2021 has GetComponentInParent(bool includeInactive = false)
-            if (GetComponent<NetworkIdentity>() == null &&
+            if (GetComponent<NetworkIdentity>()             == null &&
                 GetComponentInParent<NetworkIdentity>(true) == null)
             {
                 Debug.LogError($"{GetType()} on {name} requires a NetworkIdentity. Please add a NetworkIdentity component to {name} or its parents.", this);
@@ -179,8 +182,7 @@ namespace Mirror
         }
 
         // USED BY WEAVER to set syncvars in host mode without deadlocking
-        protected bool GetSyncVarHookGuard(ulong dirtyBit) =>
-            (syncVarHookGuard & dirtyBit) != 0UL;
+        protected bool GetSyncVarHookGuard(ulong dirtyBit) => (syncVarHookGuard & dirtyBit) != 0UL;
 
         // USED BY WEAVER to set syncvars in host mode without deadlocking
         protected void SetSyncVarHookGuard(ulong dirtyBit, bool value)
@@ -233,13 +235,13 @@ namespace Mirror
         // be called manually as well.
         public void ClearAllDirtyBits()
         {
-            lastSyncTime = NetworkTime.localTime;
-            syncVarDirtyBits = 0L;
+            lastSyncTime        = NetworkTime.localTime;
+            syncVarDirtyBits    = 0L;
             syncObjectDirtyBits = 0L;
 
             // clear all unsynchronized changes in syncobjects
             // (Linq allocates, use for instead)
-            for (int i = 0; i < syncObjects.Count; ++i)
+            for (int i = 0 ; i < syncObjects.Count ; ++i)
             {
                 syncObjects[i].ClearChanges();
             }
@@ -281,12 +283,10 @@ namespace Mirror
                 // so we need to check NetworkServer/Client.active here instead.
 
                 // host mode: any ServerToClient and any local client owned
-                if (NetworkServer.active && NetworkClient.active)
-                    return syncDirection == SyncDirection.ServerToClient || isOwned;
+                if (NetworkServer.active && NetworkClient.active) return syncDirection == SyncDirection.ServerToClient || isOwned;
 
                 // server only: any ServerToClient
-                if (NetworkServer.active)
-                    return syncDirection == SyncDirection.ServerToClient;
+                if (NetworkServer.active) return syncDirection == SyncDirection.ServerToClient;
 
                 // client only: only ClientToServer and owned
                 if (NetworkClient.active)
@@ -350,8 +350,7 @@ namespace Mirror
                 // Unreliable Cmds from NetworkTransform may be generated,
                 // or client may have been set NotReady intentionally, so
                 // only warn if on the reliable channel.
-                if (channelId == Channels.Reliable)
-                    Debug.LogWarning($"Command {functionFullName} called on {name} while NetworkClient is not ready.\nThis may be ignored if client intentionally set NotReady.", gameObject);
+                if (channelId == Channels.Reliable) Debug.LogWarning($"Command {functionFullName} called on {name} while NetworkClient is not ready.\nThis may be ignored if client intentionally set NotReady.", gameObject);
                 return;
             }
 
@@ -383,10 +382,12 @@ namespace Mirror
             // construct the message
             CommandMessage message = new CommandMessage
             {
-                netId = netId,
-                componentIndex = ComponentIndex,
+                netId          = netId
+              , componentIndex = ComponentIndex
+               ,
                 // type+func so Inventory.RpcUse != Equipment.RpcUse
-                functionHash = (ushort)functionHashCode,
+                functionHash = (ushort)functionHashCode
+               ,
                 // segment to avoid reader allocations
                 payload = writer.ToArraySegment()
             };
@@ -421,10 +422,12 @@ namespace Mirror
             // construct the message
             RpcMessage message = new RpcMessage
             {
-                netId = netId,
-                componentIndex = ComponentIndex,
+                netId          = netId
+              , componentIndex = ComponentIndex
+               ,
                 // type+func so Inventory.RpcUse != Equipment.RpcUse
-                functionHash = (ushort)functionHashCode,
+                functionHash = (ushort)functionHashCode
+               ,
                 // segment to avoid reader allocations
                 payload = writer.ToArraySegment()
             };
@@ -434,8 +437,7 @@ namespace Mirror
             // NetworkServer.SendToReadyObservers(netIdentity, message, includeOwner, channelId);
 
             // safety check used to be in SendToReadyObservers. keep it for now.
-            if (netIdentity.observers == null || netIdentity.observers.Count == 0)
-                return;
+            if (netIdentity.observers == null || netIdentity.observers.Count == 0) return;
 
             // serialize the message only once
             using (NetworkWriterPooled serialized = NetworkWriterPool.Get())
@@ -493,10 +495,12 @@ namespace Mirror
             // construct the message
             RpcMessage message = new RpcMessage
             {
-                netId = netId,
-                componentIndex = ComponentIndex,
+                netId          = netId
+              , componentIndex = ComponentIndex
+               ,
                 // type+func so Inventory.RpcUse != Equipment.RpcUse
-                functionHash = (ushort)functionHashCode,
+                functionHash = (ushort)functionHashCode
+               ,
                 // segment to avoid reader allocations
                 payload = writer.ToArraySegment()
             };
@@ -533,7 +537,7 @@ namespace Mirror
         //       }
         //   }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GeneratedSyncVarSetter<T>(T value, ref T field, ulong dirtyBit, Action<T, T> OnChanged)
+        public void GeneratedSyncVarSetter <T>(T value, ref T field, ulong dirtyBit, Action<T, T> OnChanged)
         {
             if (!SyncVarEqual(value, ref field))
             {
@@ -614,7 +618,7 @@ namespace Mirror
         // NetworkBehaviour needs custom handling for persistence via netId.
         // has one extra parameter.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GeneratedSyncVarSetter_NetworkBehaviour<T>(T value, ref T field, ulong dirtyBit, Action<T, T> OnChanged, ref NetworkBehaviourSyncVar netIdField)
+        public void GeneratedSyncVarSetter_NetworkBehaviour <T>(T value, ref T field, ulong dirtyBit, Action<T, T> OnChanged, ref NetworkBehaviourSyncVar netIdField)
             where T : NetworkBehaviour
         {
             if (!SyncVarNetworkBehaviourEqual(value, netIdField))
@@ -665,8 +669,7 @@ namespace Mirror
         // dirtyBit is a mask like 00010
         protected void SetSyncVarGameObject(GameObject newGameObject, ref GameObject gameObjectField, ulong dirtyBit, ref uint netIdField)
         {
-            if (GetSyncVarHookGuard(dirtyBit))
-                return;
+            if (GetSyncVarHookGuard(dirtyBit)) return;
 
             uint newNetId = 0;
             if (newGameObject != null)
@@ -685,7 +688,7 @@ namespace Mirror
             SetSyncVarDirtyBit(dirtyBit);
             // assign new one on the server, and in case we ever need it on client too
             gameObjectField = newGameObject;
-            netIdField = newNetId;
+            netIdField      = newNetId;
         }
 
         // helper function for [SyncVar] GameObjects.
@@ -702,8 +705,7 @@ namespace Mirror
 
             // client always looks up based on netId because objects might get in and out of range
             // over and over again, which shouldn't null them forever
-            if (NetworkClient.spawned.TryGetValue(netId, out NetworkIdentity identity) && identity != null)
-                return gameObjectField = identity.gameObject;
+            if (NetworkClient.spawned.TryGetValue(netId, out NetworkIdentity identity) && identity != null) return gameObjectField = identity.gameObject;
             return null;
         }
 
@@ -771,7 +773,7 @@ namespace Mirror
         //          GeneratedSyncVarDeserialize(reader, ref health, null, reader.ReadInt());
         //      }
         //  }
-        public void GeneratedSyncVarDeserialize<T>(ref T field, Action<T, T> OnChanged, T value)
+        public void GeneratedSyncVarDeserialize <T>(ref T field, Action<T, T> OnChanged, T value)
         {
             T previous = field;
             field = value;
@@ -830,7 +832,7 @@ namespace Mirror
         //   }
         public void GeneratedSyncVarDeserialize_GameObject(ref GameObject field, Action<GameObject, GameObject> OnChanged, NetworkReader reader, ref uint netIdField)
         {
-            uint previousNetId = netIdField;
+            uint       previousNetId      = netIdField;
             GameObject previousGameObject = field;
             netIdField = reader.ReadUInt();
 
@@ -892,7 +894,7 @@ namespace Mirror
         //   }
         public void GeneratedSyncVarDeserialize_NetworkIdentity(ref NetworkIdentity field, Action<NetworkIdentity, NetworkIdentity> OnChanged, NetworkReader reader, ref uint netIdField)
         {
-            uint previousNetId = netIdField;
+            uint            previousNetId    = netIdField;
             NetworkIdentity previousIdentity = field;
             netIdField = reader.ReadUInt();
 
@@ -953,11 +955,11 @@ namespace Mirror
         //           GeneratedSyncVarDeserialize_NetworkBehaviour(reader, ref target, OnChangedNB, ref ___targetNetId);
         //       }
         //   }
-        public void GeneratedSyncVarDeserialize_NetworkBehaviour<T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkBehaviourSyncVar netIdField)
+        public void GeneratedSyncVarDeserialize_NetworkBehaviour <T>(ref T field, Action<T, T> OnChanged, NetworkReader reader, ref NetworkBehaviourSyncVar netIdField)
             where T : NetworkBehaviour
         {
-            NetworkBehaviourSyncVar previousNetId = netIdField;
-            T previousBehaviour = field;
+            NetworkBehaviourSyncVar previousNetId     = netIdField;
+            T                       previousBehaviour = field;
             netIdField = reader.ReadNetworkBehaviourSyncVar();
 
             // get the new NetworkBehaviour now that netId field is set
@@ -974,8 +976,7 @@ namespace Mirror
         // dirtyBit is a mask like 00010
         protected void SetSyncVarNetworkIdentity(NetworkIdentity newIdentity, ref NetworkIdentity identityField, ulong dirtyBit, ref uint netIdField)
         {
-            if (GetSyncVarHookGuard(dirtyBit))
-                return;
+            if (GetSyncVarHookGuard(dirtyBit)) return;
 
             uint newNetId = 0;
             if (newIdentity != null)
@@ -1012,13 +1013,13 @@ namespace Mirror
             return identityField;
         }
 
-        protected static bool SyncVarNetworkBehaviourEqual<T>(T newBehaviour, NetworkBehaviourSyncVar syncField) where T : NetworkBehaviour
+        protected static bool SyncVarNetworkBehaviourEqual <T>(T newBehaviour, NetworkBehaviourSyncVar syncField) where T : NetworkBehaviour
         {
-            uint newNetId = 0;
+            uint newNetId          = 0;
             byte newComponentIndex = 0;
             if (newBehaviour != null)
             {
-                newNetId = newBehaviour.netId;
+                newNetId          = newBehaviour.netId;
                 newComponentIndex = newBehaviour.ComponentIndex;
                 if (newNetId == 0)
                 {
@@ -1032,16 +1033,15 @@ namespace Mirror
 
         // helper function for [SyncVar] NetworkIdentities.
         // dirtyBit is a mask like 00010
-        protected void SetSyncVarNetworkBehaviour<T>(T newBehaviour, ref T behaviourField, ulong dirtyBit, ref NetworkBehaviourSyncVar syncField) where T : NetworkBehaviour
+        protected void SetSyncVarNetworkBehaviour <T>(T newBehaviour, ref T behaviourField, ulong dirtyBit, ref NetworkBehaviourSyncVar syncField) where T : NetworkBehaviour
         {
-            if (GetSyncVarHookGuard(dirtyBit))
-                return;
+            if (GetSyncVarHookGuard(dirtyBit)) return;
 
-            uint newNetId = 0;
+            uint newNetId       = 0;
             byte componentIndex = 0;
             if (newBehaviour != null)
             {
-                newNetId = newBehaviour.netId;
+                newNetId       = newBehaviour.netId;
                 componentIndex = newBehaviour.ComponentIndex;
                 if (newNetId == 0)
                 {
@@ -1061,7 +1061,7 @@ namespace Mirror
 
         // helper function for [SyncVar] NetworkBehaviours.
         // -> ref GameObject as second argument makes OnDeserialize processing easier
-        protected T GetSyncVarNetworkBehaviour<T>(NetworkBehaviourSyncVar syncNetBehaviour, ref T behaviourField) where T : NetworkBehaviour
+        protected T GetSyncVarNetworkBehaviour <T>(NetworkBehaviourSyncVar syncNetBehaviour, ref T behaviourField) where T : NetworkBehaviour
         {
             // server always uses the field
             // if neither, fallback to original field
@@ -1077,7 +1077,7 @@ namespace Mirror
             {
                 return null;
             }
-            
+
             // ensure componentIndex is in range.
             // show explicit errors if something went wrong, instead of IndexOutOfRangeException.
             // removing components at runtime isn't allowed, yet this happened in a project so we need to check for it.
@@ -1091,7 +1091,7 @@ namespace Mirror
             return behaviourField;
         }
 
-        protected static bool SyncVarEqual<T>(T value, ref T fieldValue)
+        protected static bool SyncVarEqual <T>(T value, ref T fieldValue)
         {
             // newly initialized or changed value?
             // value.Equals(fieldValue) allocates without 'where T : IEquatable'
@@ -1101,7 +1101,7 @@ namespace Mirror
         }
 
         // dirtyBit is a mask like 00010
-        protected void SetSyncVar<T>(T value, ref T fieldValue, ulong dirtyBit)
+        protected void SetSyncVar <T>(T value, ref T fieldValue, ulong dirtyBit)
         {
             //Debug.Log($"SetSyncVar {GetType().Name} bit:{dirtyBit} fieldValue:{value}");
             SetSyncVarDirtyBit(dirtyBit);
@@ -1175,7 +1175,7 @@ namespace Mirror
 
         public void SerializeObjectsAll(NetworkWriter writer)
         {
-            for (int i = 0; i < syncObjects.Count; i++)
+            for (int i = 0 ; i < syncObjects.Count ; i++)
             {
                 SyncObject syncObject = syncObjects[i];
                 syncObject.OnSerializeAll(writer);
@@ -1188,7 +1188,7 @@ namespace Mirror
             writer.WriteULong(syncObjectDirtyBits);
 
             // serializable objects, such as synclists
-            for (int i = 0; i < syncObjects.Count; i++)
+            for (int i = 0 ; i < syncObjects.Count ; i++)
             {
                 // check dirty mask at nth bit
                 SyncObject syncObject = syncObjects[i];
@@ -1201,7 +1201,7 @@ namespace Mirror
 
         internal void DeserializeObjectsAll(NetworkReader reader)
         {
-            for (int i = 0; i < syncObjects.Count; i++)
+            for (int i = 0 ; i < syncObjects.Count ; i++)
             {
                 SyncObject syncObject = syncObjects[i];
                 syncObject.OnDeserializeAll(reader);
@@ -1211,7 +1211,7 @@ namespace Mirror
         internal void DeserializeObjectsDelta(NetworkReader reader)
         {
             ulong dirty = reader.ReadULong();
-            for (int i = 0; i < syncObjects.Count; i++)
+            for (int i = 0 ; i < syncObjects.Count ; i++)
             {
                 // check dirty mask at nth bit
                 SyncObject syncObject = syncObjects[i];
@@ -1267,11 +1267,12 @@ namespace Mirror
                 // show a detailed error and let the user know what went wrong
                 Debug.LogError($"OnSerialize failed for: object={name} component={GetType()} sceneId={netIdentity.sceneId:X}\n\n{e}");
             }
+
             int endPosition = writer.Position;
 
             // fill in length hash as the last byte of the 4 byte length
             writer.Position = headerPosition;
-            int size = endPosition - contentPosition;
+            int  size   = endPosition - contentPosition;
             byte safety = (byte)(size & 0xFF);
             writer.WriteByte(safety);
             writer.Position = endPosition;
@@ -1303,8 +1304,8 @@ namespace Mirror
             bool result = true;
 
             // read 1 byte length hash safety & capture beginning for size check
-            byte safety = reader.ReadByte();
-            int chunkStart = reader.Position;
+            byte safety     = reader.ReadByte();
+            int  chunkStart = reader.Position;
 
             // call OnDeserialize and wrap it in a try-catch block so there's no
             // way to mess up another component's deserialization
@@ -1316,17 +1317,17 @@ namespace Mirror
             catch (Exception e)
             {
                 // show a detailed error and let the user know what went wrong
-                Debug.LogError($"OnDeserialize failed Exception={e.GetType()} (see below) object={name} component={GetType()} netId={netId}. Possible Reasons:\n" +
-                               $"  * Do {GetType()}'s OnSerialize and OnDeserialize calls write the same amount of data? \n" +
-                               $"  * Was there an exception in {GetType()}'s OnSerialize/OnDeserialize code?\n" +
-                               $"  * Are the server and client the exact same project?\n" +
+                Debug.LogError($"OnDeserialize failed Exception={e.GetType()} (see below) object={name} component={GetType()} netId={netId}. Possible Reasons:\n"                                                                      +
+                               $"  * Do {GetType()}'s OnSerialize and OnDeserialize calls write the same amount of data? \n"                                                                                                           +
+                               $"  * Was there an exception in {GetType()}'s OnSerialize/OnDeserialize code?\n"                                                                                                                        +
+                               $"  * Are the server and client the exact same project?\n"                                                                                                                                              +
                                $"  * Maybe this OnDeserialize call was meant for another GameObject? The sceneIds can easily get out of sync if the Hierarchy was modified only in the client OR the server. Try rebuilding both.\n\n" +
                                $"Exception {e}");
                 result = false;
             }
 
             // compare bytes read with length hash
-            int size = reader.Position - chunkStart;
+            int  size     = reader.Position - chunkStart;
             byte sizeHash = (byte)(size & 0xFF);
             if (sizeHash != safety)
             {
@@ -1340,7 +1341,7 @@ namespace Mirror
                 // see test: SerializationSizeMismatch.
                 int correctedSize = ErrorCorrection(size, safety);
                 reader.Position = chunkStart + correctedSize;
-                result = false;
+                result          = false;
             }
 
             return result;
@@ -1355,32 +1356,33 @@ namespace Mirror
         }
 
         /// <summary>Like Start(), but only called on server and host.</summary>
-        public virtual void OnStartServer() {}
+        public virtual void OnStartServer() { }
 
         /// <summary>Stop event, only called on server and host.</summary>
-        public virtual void OnStopServer() {}
+        public virtual void OnStopServer() { }
 
         /// <summary>Like Start(), but only called on client and host.</summary>
-        public virtual void OnStartClient() {}
+        public virtual void OnStartClient() { }
 
         /// <summary>Stop event, only called on client and host.</summary>
-        public virtual void OnStopClient() {}
+        public virtual void OnStopClient() { }
 
         /// <summary>Like Start(), but only called on client and host for the local player object.</summary>
-        public virtual void OnStartLocalPlayer() {}
+        public virtual void OnStartLocalPlayer() { }
 
         /// <summary>Stop event, but only called on client and host for the local player object.</summary>
-        public virtual void OnStopLocalPlayer() {}
+        public virtual void OnStopLocalPlayer() { }
 
         /// <summary>Like Start(), but only called for objects the client has authority over.</summary>
-        public virtual void OnStartAuthority() {}
+        public virtual void OnStartAuthority() { }
 
         /// <summary>Stop event, only called for objects the client has authority over.</summary>
-        public virtual void OnStopAuthority() {}
+        public virtual void OnStopAuthority() { }
 
         // Weaver injects this into inheriting classes to return true.
         // allows runtime & tests to check if a type was weaved.
         [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual bool Weaved() => false;
     }
+
 }
