@@ -1,8 +1,9 @@
-using System;
-using UnityEngine;
-
 namespace Mirror
 {
+
+    using System;
+    using UnityEngine;
+
     /// <summary>
     /// SyncVars are used to automatically synchronize a variable between the server and all clients. The direction of synchronization depends on the Sync Direction property, ServerToClient by default.
     /// <para>
@@ -24,7 +25,7 @@ namespace Mirror
     [AttributeUsage(AttributeTargets.Method)]
     public class CommandAttribute : Attribute
     {
-        public int channel = Channels.Reliable;
+        public int  channel           = Channels.Reliable;
         public bool requiresAuthority = true;
     }
 
@@ -34,7 +35,7 @@ namespace Mirror
     [AttributeUsage(AttributeTargets.Method)]
     public class ClientRpcAttribute : Attribute
     {
-        public int channel = Channels.Reliable;
+        public int  channel      = Channels.Reliable;
         public bool includeOwner = true;
     }
 
@@ -52,50 +53,51 @@ namespace Mirror
     /// <para>Prints a warning if a client or in-active server tries to execute this method.</para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class ServerAttribute : Attribute {}
+    public class ServerAttribute : Attribute { }
 
     /// <summary>
     /// Only an active server will run this method.
     /// <para>No warning is thrown.</para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class ServerCallbackAttribute : Attribute {}
+    public class ServerCallbackAttribute : Attribute { }
 
     /// <summary>
     /// Only an active client will run this method.
     /// <para>Prints a warning if the server or in-active client tries to execute this method.</para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class ClientAttribute : Attribute {}
+    public class ClientAttribute : Attribute { }
 
     /// <summary>
     /// Only an active client will run this method.
     /// <para>No warning is printed.</para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class ClientCallbackAttribute : Attribute {}
+    public class ClientCallbackAttribute : Attribute { }
 
     /// <summary>
     /// Converts a string property into a Scene property in the inspector
     /// </summary>
-    public class SceneAttribute : PropertyAttribute {}
+    public class SceneAttribute : PropertyAttribute { }
 
     /// <summary>
     /// Used to show private SyncList in the inspector,
     /// <para> Use instead of SerializeField for non Serializable types </para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public class ShowInInspectorAttribute : Attribute {}
+    public class ShowInInspectorAttribute : Attribute { }
 
     /// <summary>
     /// Used to make a field readonly in the inspector
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class ReadOnlyAttribute : PropertyAttribute {}
+    public class ReadOnlyAttribute : PropertyAttribute { }
 
     /// <summary>
     /// When defining multiple Readers/Writers for the same type, indicate which one Weaver must use.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class WeaverPriorityAttribute : Attribute {}
+    public class WeaverPriorityAttribute : Attribute { }
+
 }

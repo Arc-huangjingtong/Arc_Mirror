@@ -1,42 +1,44 @@
-using System;
-using UnityEngine;
-
 namespace Mirror
 {
+
+    using System;
+    using UnityEngine;
+
     // need to send time every sendInterval.
     // batching automatically includes remoteTimestamp.
     // all we need to do is ensure that an empty message is sent.
     // and react to it.
     // => we don't want to insert a snapshot on every batch.
     // => do it exactly every sendInterval on every TimeSnapshotMessage.
-    public struct TimeSnapshotMessage : NetworkMessage {}
+    public struct TimeSnapshotMessage : NetworkMessage { }
 
-    public struct ReadyMessage : NetworkMessage {}
+    public struct ReadyMessage : NetworkMessage { }
 
-    public struct NotReadyMessage : NetworkMessage {}
+    public struct NotReadyMessage : NetworkMessage { }
 
-    public struct AddPlayerMessage : NetworkMessage {}
+    public struct AddPlayerMessage : NetworkMessage { }
 
     public struct SceneMessage : NetworkMessage
     {
         public string sceneName;
+
         // Normal = 0, LoadAdditive = 1, UnloadAdditive = 2
         public SceneOperation sceneOperation;
-        public bool customHandling;
+        public bool           customHandling;
     }
 
     public enum SceneOperation : byte
     {
-        Normal,
-        LoadAdditive,
-        UnloadAdditive
+        Normal, LoadAdditive, UnloadAdditive
     }
 
     public struct CommandMessage : NetworkMessage
     {
         public uint netId;
         public byte componentIndex;
+
         public ushort functionHash;
+
         // the parameters for the Cmd function
         // -> ArraySegment to avoid unnecessary allocations
         public ArraySegment<byte> payload;
@@ -46,7 +48,9 @@ namespace Mirror
     {
         public uint netId;
         public byte componentIndex;
+
         public ushort functionHash;
+
         // the parameters for the Cmd function
         // -> ArraySegment to avoid unnecessary allocations
         public ArraySegment<byte> payload;
@@ -54,26 +58,31 @@ namespace Mirror
 
     [Flags] public enum SpawnFlags : byte
     {
-        None          = 0,
-        isOwner       = 1 << 0,
-        isLocalPlayer = 1 << 1
+        None = 0, isOwner = 1 << 0, isLocalPlayer = 1 << 1
     }
 
     public struct SpawnMessage : NetworkMessage
     {
         // netId of new or existing object
         public uint netId;
+
         // isOwner and isLocalPlayer are merged into one byte via bitwise op
         public SpawnFlags spawnFlags;
+
         public ulong sceneId;
+
         // If sceneId != 0 then it is used instead of assetId
         public uint assetId;
+
         // Local position
         public Vector3 position;
+
         // Local rotation
         public Quaternion rotation;
+
         // Local scale
         public Vector3 scale;
+
         // serialized component data
         // ArraySegment to avoid unnecessary allocations
         public ArraySegment<byte> payload;
@@ -82,26 +91,29 @@ namespace Mirror
         public bool isOwner
         {
             get => spawnFlags.HasFlag(SpawnFlags.isOwner);
-            set => spawnFlags = 
-                value 
-                ? spawnFlags | SpawnFlags.isOwner 
-                : spawnFlags & ~SpawnFlags.isOwner;
+            set =>
+                spawnFlags =
+                    value
+                        ? spawnFlags | SpawnFlags.isOwner
+                        : spawnFlags & ~SpawnFlags.isOwner;
         }
 
         // Backwards compatibility after implementing spawnFlags
         public bool isLocalPlayer
         {
             get => spawnFlags.HasFlag(SpawnFlags.isLocalPlayer);
-            set => spawnFlags = 
-                value 
-                ? spawnFlags | SpawnFlags.isLocalPlayer 
-                : spawnFlags & ~SpawnFlags.isLocalPlayer;
+            set =>
+                spawnFlags =
+                    value
+                        ? spawnFlags | SpawnFlags.isLocalPlayer
+                        : spawnFlags & ~SpawnFlags.isLocalPlayer;
         }
     }
 
     public struct ChangeOwnerMessage : NetworkMessage
     {
         public uint netId;
+
         // isOwner and isLocalPlayer are merged into one byte via bitwise op
         public SpawnFlags spawnFlags;
 
@@ -109,26 +121,28 @@ namespace Mirror
         public bool isOwner
         {
             get => spawnFlags.HasFlag(SpawnFlags.isOwner);
-            set => spawnFlags = 
-                value 
-                ? spawnFlags | SpawnFlags.isOwner 
-                : spawnFlags & ~SpawnFlags.isOwner;
+            set =>
+                spawnFlags =
+                    value
+                        ? spawnFlags | SpawnFlags.isOwner
+                        : spawnFlags & ~SpawnFlags.isOwner;
         }
 
         // Backwards compatibility after implementing spawnFlags
         public bool isLocalPlayer
         {
             get => spawnFlags.HasFlag(SpawnFlags.isLocalPlayer);
-            set => spawnFlags = 
-                value 
-                ? spawnFlags | SpawnFlags.isLocalPlayer 
-                : spawnFlags & ~SpawnFlags.isLocalPlayer;
+            set =>
+                spawnFlags =
+                    value
+                        ? spawnFlags | SpawnFlags.isLocalPlayer
+                        : spawnFlags & ~SpawnFlags.isLocalPlayer;
         }
     }
 
-    public struct ObjectSpawnStartedMessage : NetworkMessage {}
+    public struct ObjectSpawnStartedMessage : NetworkMessage { }
 
-    public struct ObjectSpawnFinishedMessage : NetworkMessage {}
+    public struct ObjectSpawnFinishedMessage : NetworkMessage { }
 
     public struct ObjectDestroyMessage : NetworkMessage
     {
@@ -143,6 +157,7 @@ namespace Mirror
     public struct EntityStateMessage : NetworkMessage
     {
         public uint netId;
+
         // the serialized component data
         // -> ArraySegment to avoid unnecessary allocations
         public ArraySegment<byte> payload;
@@ -160,7 +175,7 @@ namespace Mirror
 
         public NetworkPingMessage(double localTime, double predictedTimeAdjusted)
         {
-            this.localTime = localTime;
+            this.localTime             = localTime;
             this.predictedTimeAdjusted = predictedTimeAdjusted;
         }
     }
@@ -178,9 +193,10 @@ namespace Mirror
 
         public NetworkPongMessage(double localTime, double predictionErrorUnadjusted, double predictionErrorAdjusted)
         {
-            this.localTime = localTime;
+            this.localTime                 = localTime;
             this.predictionErrorUnadjusted = predictionErrorUnadjusted;
-            this.predictionErrorAdjusted = predictionErrorAdjusted;
+            this.predictionErrorAdjusted   = predictionErrorAdjusted;
         }
     }
+
 }

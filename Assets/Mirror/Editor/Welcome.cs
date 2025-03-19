@@ -1,10 +1,11 @@
-﻿// Shows either a welcome message, only once per session.
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEngine;
-
-namespace Mirror
+﻿namespace Mirror
 {
+
+    // Shows either a welcome message, only once per session.
+#if UNITY_EDITOR
+    using UnityEditor;
+    using UnityEngine;
+
     static class Welcome
     {
         [InitializeOnLoadMethod]
@@ -19,5 +20,6 @@ namespace Mirror
             }
         }
     }
-}
 #endif
+
+}

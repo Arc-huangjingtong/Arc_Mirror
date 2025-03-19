@@ -1,13 +1,14 @@
-using System.Collections.Generic;
-using System.IO;
-using UnityEditor;
-using UnityEngine;
-
 namespace Mirror
 {
+
+    using System.Collections.Generic;
+    using System.IO;
+    using UnityEditor;
+    using UnityEngine;
+
     public static class EditorHelper
     {
-        public static string FindPath<T>()
+        public static string FindPath <T>()
         {
             string typeName = typeof(T).Name;
 
@@ -38,4 +39,5 @@ namespace Mirror
             }
         }
     }
+
 }
